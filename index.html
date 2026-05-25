@@ -479,6 +479,32 @@ footer{
 var SB_URL="https://fgusexzvixsydgkyjizb.supabase.co";
 var SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZndXNleHp2aXhzeWRna3lqaXpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMjU3MTYsImV4cCI6MjA5MjcwMTcxNn0.U2YXfQV5MyGdLg4reqsv5V2vNvu9rm4JdM1XD2TfZOo";
 var SB_H={"Content-Type":"application/json","apikey":SB_KEY,"Authorization":"Bearer "+SB_KEY};
+var WHATSAPP_NUM="524494241796";
+var FORM_VALORACION_URL="https://forms.gle/MLq8PFr22Rst1TDz9";
+var STRIPE_CHECKOUT_ENDPOINT="/api/create-checkout-session";
+var PACKAGES={
+  valoracion:{
+    priceId:"price_1Tar104CqPGdReU8TaRWWtXw",
+    nombre:"Valoración + Ruta de Recuperación",
+    corto:"valoración + ruta de recuperación",
+    precio:"$1,199 MXN",
+    sesiones:"1 sesión"
+  },
+  inicio:{
+    priceId:"price_1Tar2E4CqPGdReU8qJQ2lJ51",
+    nombre:"Inicio Guiado · 4 semanas",
+    corto:"inicio guiado de 4 semanas",
+    precio:"$3,499 MXN",
+    sesiones:"valoración + 3 sesiones semanales"
+  },
+  avanzado:{
+    priceId:"price_1Tar5I4CqPGdReU8cRwDgcaL",
+    nombre:"Acompañamiento Avanzado · 7 semanas",
+    corto:"acompañamiento avanzado de 7 semanas",
+    precio:"$6,499 MXN",
+    sesiones:"valoración + 6 sesiones semanales"
+  }
+};
 
 async function getSlotsDisponibles(){
   try{
@@ -492,7 +518,7 @@ async function reservarSlot(slotId, nombre, wa, paquete){
     await fetch(SB_URL+"/rest/v1/slots?id=eq."+slotId,{
       method:"PATCH",
       headers:SB_H,
-      body:JSON.stringify({status:"ocupado",patient_name:nombre,patient_wa:wa,package:paquete})
+      body:JSON.stringify({status:"pendiente_pago",patient_name:nombre,patient_wa:wa,package:paquete})
     });
     return true;
   }catch(e){return false;}
@@ -515,7 +541,7 @@ async function reservarSlot(slotId, nombre, wa, paquete){
     <a href="#paquetes">Paquetes</a>
     <a href="#formulario">Contacto</a>
   </div>
-  <a href="#formulario" class="nav-btn">Iniciar valoración →</a>
+  <a href="#paquetes" class="nav-btn">Elegir paquete →</a>
 </nav>
 
 <!-- HERO -->
@@ -526,7 +552,7 @@ async function reservarSlot(slotId, nombre, wa, paquete){
     <p class="hero-desc">Evaluación clínica profesional, diagnóstico fisioterapéutico preciso y plan de ejercicios personalizado — sin trasladarte, sin filas, con seguimiento real.</p>
     <p class="hero-desc" style="font-style:italic;color:rgba(255,255,255,.4);font-size:14px;margin-top:-16px;">El mismo nivel de atención del fútbol profesional, ahora desde casa.</p>
     <div class="hero-actions">
-      <a href="#formulario" class="btn-hero">Comenzar valoración gratuita →</a>
+      <a href="#paquetes" class="btn-hero">Elegir paquete →</a>
       <a href="#proceso" class="btn-ghost">Ver cómo funciona ↓</a>
     </div>
     <div class="hero-stats">
@@ -625,8 +651,8 @@ async function reservarSlot(slotId, nombre, wa, paquete){
 <!-- PROCESO -->
 <section class="sec" id="proceso">
   <div class="label">Cómo funciona</div>
-  <h2 class="titulo">Cuatro pasos,<br>sin complicaciones</h2>
-  <p class="subtitulo">Diseñado para que te concentres en recuperarte, no en trámites.</p>
+  <h2 class="titulo">Cinco pasos,<br>sin complicaciones</h2>
+  <p class="subtitulo">Primero eliges el nivel de acompañamiento, luego confirmo que la atención online sea segura para tu caso.</p>
   <div class="proceso-wrap">
     <div class="paso">
       <div class="paso-num">01</div>
@@ -638,8 +664,8 @@ async function reservarSlot(slotId, nombre, wa, paquete){
           <line x1="9" y1="17" x2="14" y2="17" stroke="#1a5c78" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
       </div>
-      <h3>Filtro de seguridad</h3>
-      <p>Responde un cuestionario breve para verificar que la consulta online es la opción correcta para ti y descartar señales de alarma.</p>
+      <h3>Elige tu paquete</h3>
+      <p>Selecciona si quieres empezar con una valoración, un mes guiado o un acompañamiento más avanzado.</p>
     </div>
     <div class="paso">
       <div class="paso-num">02</div>
@@ -653,8 +679,8 @@ async function reservarSlot(slotId, nombre, wa, paquete){
           <rect x="16" y="14" width="5" height="5" rx="1" stroke="#1a5c78" stroke-width="1" opacity=".5"/>
         </svg>
       </div>
-      <h3>Elige fecha y plan</h3>
-      <p>Selecciona el horario disponible que más te convenga y el paquete que se adapte a tus necesidades.</p>
+      <h3>Filtro de seguridad</h3>
+      <p>Responde un cuestionario breve para verificar que la consulta online es la opción correcta para ti y descartar señales de alarma.</p>
     </div>
     <div class="paso">
       <div class="paso-num">03</div>
@@ -667,8 +693,8 @@ async function reservarSlot(slotId, nombre, wa, paquete){
           <line x1="12" y1="17" x2="20" y2="17" stroke="#1a5c78" stroke-width="1.2" stroke-linecap="round" opacity=".5"/>
         </svg>
       </div>
-      <h3>Pago seguro</h3>
-      <p>Completa tu pago con Stripe de forma segura. Recibirás confirmación inmediata por WhatsApp.</p>
+      <h3>Agenda disponible</h3>
+      <p>Elige uno de los horarios que Chava marque como disponibles desde su app de ejercicio.</p>
     </div>
     <div class="paso">
       <div class="paso-num">04</div>
@@ -677,8 +703,8 @@ async function reservarSlot(slotId, nombre, wa, paquete){
           <path d="M14 3L17 9H23L18 13L20 19L14 15L8 19L10 13L5 9H11Z" stroke="#1a5c78" stroke-width="1.5" stroke-linejoin="round"/>
         </svg>
       </div>
-      <h3>Valoración inicial automática</h3>
-      <p>Al confirmar tu pago recibes un formulario clínico detallado. Me ayuda a conocer tu lesión a fondo y llegar preparado a tu sesión.</p>
+      <h3>Pago seguro</h3>
+      <p>Completa tu pago con Stripe. El horario queda pendiente de pago y se confirma al completar Checkout.</p>
     </div>
     <div class="paso" style="grid-column:1 / -1; border-right:none;">
       <div class="paso-num">05</div>
@@ -690,8 +716,8 @@ async function reservarSlot(slotId, nombre, wa, paquete){
           <line x1="10" y1="25" x2="18" y2="25" stroke="#1a5c78" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
       </div>
-      <h3>Consulta + seguimiento en app</h3>
-      <p>Videollamada de evaluación funcional completa. Después te asigno tu plan de ejercicios en la app y monitoreo tu progreso sesión a sesión.</p>
+      <h3>Formulario obligatorio + consulta</h3>
+      <p>Después de pagar recibes el formulario clínico obligatorio y las instrucciones de videollamada para llegar con contexto a tu sesión.</p>
     </div>
   </div>
 </section>
@@ -801,68 +827,69 @@ async function reservarSlot(slotId, nombre, wa, paquete){
 <section class="sec" id="paquetes">
   <div class="label">Inversión</div>
   <h2 class="titulo">Elige cómo quieres empezar</h2>
-  <p class="subtitulo">Los paquetes incluyen más seguimiento y mejor precio por sesión. La mayoría elige el Plan de inicio.</p>
+  <p class="subtitulo">El número de semanas define el nivel de acompañamiento inicial; los ejercicios y progresiones se ajustan según tu caso.</p>
   <div class="paquetes-row">
 
     <div class="pkg">
       <div class="pkg-tag">1 sesión</div>
-      <div class="pkg-nombre">Consulta de diagnóstico</div>
-      <div class="pkg-desc">Ideal si quieres saber exactamente qué tienes en tu rodilla y por dónde empezar.</div>
+      <div class="pkg-nombre">Valoración + Ruta de Recuperación</div>
+      <div class="pkg-desc">Para saber qué puede estar pasando con tu rodilla y salir con un plan inicial claro.</div>
       <div class="pkg-precio">$1,199</div>
-      <div class="pkg-precio-sub">MXN · única sesión</div>
+      <div class="pkg-precio-sub">MXN · pago único</div>
       <ul class="pkg-lista">
+        <li>Formulario clínico obligatorio</li>
         <li>Evaluación funcional completa</li>
-        <li>Diagnóstico fisioterapéutico</li>
+        <li>Hipótesis funcional / diagnóstico fisioterapéutico</li>
         <li>Plan de ejercicios personalizado en la app</li>
-        <li>Registro de tu progreso desde la app</li>
+        <li>Recomendaciones de siguientes pasos</li>
       </ul>
-      <a href="#formulario" class="pkg-btn claro">Comenzar →</a>
+      <button type="button" class="pkg-btn claro" onclick="selectPackage('valoracion')">Elegir valoración →</button>
     </div>
 
     <div class="pkg star">
-      <div class="pkg-badge">Más elegido</div>
-      <div class="pkg-tag">3 sesiones</div>
-      <div class="pkg-nombre">Plan de inicio</div>
-      <div class="pkg-desc">Empieza tu recuperación con acompañamiento real. Tu plan se ajusta según cómo vas evolucionando.</div>
-      <div class="pkg-precio">$2,799</div>
-      <div class="pkg-precio-sub">MXN · ahorras $798</div>
+      <div class="pkg-badge">Más recomendado</div>
+      <div class="pkg-tag">4 semanas</div>
+      <div class="pkg-nombre">Inicio Guiado · 4 semanas</div>
+      <div class="pkg-desc">Para empezar un proceso con acompañamiento semanal y ajustes reales según tu evolución.</div>
+      <div class="pkg-precio">$3,499</div>
+      <div class="pkg-precio-sub">MXN · pago único</div>
       <ul class="pkg-lista">
-        <li>Todo lo de la Consulta de diagnóstico</li>
-        <li>2 sesiones de seguimiento personalizado</li>
-        <li>Ajuste del plan según tu evolución</li>
-        <li>Monitoreo de tu progreso entre sesiones</li>
-        <li>Retroalimentación directa desde la app</li>
-        
+        <li>Todo lo de la valoración inicial</li>
+        <li>3 sesiones semanales de seguimiento</li>
+        <li>Ajustes del plan cada semana</li>
+        <li>Seguimiento de dolor y progreso en app</li>
+        <li>Soporte por WhatsApp en días hábiles <em style="font-size:11px;opacity:.7">(24-48 h)</em></li>
       </ul>
-      <a href="#formulario" class="pkg-btn oscuro">Comenzar →</a>
+      <button type="button" class="pkg-btn oscuro" onclick="selectPackage('inicio')">Elegir inicio guiado →</button>
     </div>
 
     <div class="pkg">
-      <div class="pkg-tag">6 sesiones</div>
-      <div class="pkg-nombre">Plan de recuperación</div>
-      <div class="pkg-desc">Seis semanas de trabajo continuo para que tu rodilla mejore progresivamente y retomes tu vida activa.</div>
-      <div class="pkg-precio">$5,599</div>
-      <div class="pkg-precio-sub">MXN · ahorras $1,595</div>
+      <div class="pkg-tag">7 semanas</div>
+      <div class="pkg-nombre">Acompañamiento Avanzado · 7 semanas</div>
+      <div class="pkg-desc">Para personas que buscan un proceso más continuo con progresión por fases y mayor seguimiento.</div>
+      <div class="pkg-precio">$6,499</div>
+      <div class="pkg-precio-sub">MXN · pago único</div>
       <ul class="pkg-lista">
-        <li>Todo lo del Plan de inicio</li>
-        <li>5 sesiones de seguimiento personalizado</li>
+        <li>Todo lo del Inicio Guiado</li>
+        <li>6 sesiones semanales de seguimiento</li>
         <li>Progresión estructurada semana a semana</li>
         <li>Seguimiento con escalas de dolor y bienestar</li>
-        <li>Comunicación por WhatsApp <em style="font-size:11px;opacity:.7">(respuesta en 24-48 hrs en días hábiles)</em></li>
-        <li>Revisión de objetivos al cierre del plan</li>
+        <li>Revisión de objetivos a mitad y cierre</li>
+        <li>Ajustes más finos según evolución</li>
       </ul>
-      <a href="#formulario" class="pkg-btn claro">Comenzar →</a>
+      <button type="button" class="pkg-btn claro" onclick="selectPackage('avanzado')">Elegir avanzado →</button>
     </div>
 
   </div>
+  <p style="font-size:13px;color:var(--gris);font-weight:300;line-height:1.7;max-width:720px;margin:28px auto 0;text-align:center;">Cada rodilla evoluciona distinto. Estos planes no prometen recuperación completa; definen el nivel de acompañamiento inicial. Si tu caso requiere más tiempo o atención presencial, te lo diré con claridad.</p>
 </section>
 
 <!-- FORMULARIO -->
 <section class="form-sec" id="formulario">
   <div class="form-inner">
-    <div class="label" style="justify-content:center;">Valoración inicial</div>
+    <div class="label" style="justify-content:center;">Filtro clínico</div>
     <h2 class="titulo">Comencemos con tu caso</h2>
-    <p class="subtitulo">Unas preguntas para conocerte y asegurarnos de que la consulta online es lo más indicado para ti.</p>
+    <p class="subtitulo">Unas preguntas para conocerte, revisar señales de alarma y continuar solo si la atención online es adecuada para ti.</p>
 
     <div class="form-shell">
       <div class="prog-wrap">
@@ -967,7 +994,7 @@ async function reservarSlot(slotId, nombre, wa, paquete){
       <!-- Paso 4 -->
       <div class="fs" id="fs4">
         <div class="f-tit">Última parte</div>
-        <div class="f-sub">Esto me ayuda a preparar tu sesión antes de la videollamada.</div>
+        <div class="f-sub">Esto me ayuda a entender tu caso antes de mostrarte horarios disponibles.</div>
         <div class="campo">
           <label>¿Ya visitaste a algún especialista por este problema?</label>
           <div class="ops">
@@ -990,7 +1017,7 @@ async function reservarSlot(slotId, nombre, wa, paquete){
       <!-- Paso 5: Calendario -->
       <div class="fs" id="fs5">
         <div class="f-tit">Elige tu fecha y hora</div>
-        <div class="f-sub">Estos son los horarios disponibles. Selecciona el que más te convenga.</div>
+        <div class="f-sub">Estos son los horarios que Chava marcó disponibles desde su app. Selecciona el que más te convenga antes de pagar.</div>
         <div class="cal-wrap" id="calWrap">
           <div class="cal-loading">⏳ Cargando horarios disponibles...</div>
         </div>
@@ -1006,42 +1033,42 @@ async function reservarSlot(slotId, nombre, wa, paquete){
         <div class="fres-icon r">⚠️</div>
         <div class="fres-tit">Necesitas atención médica primero</div>
         <p class="fres-txt">Algunas de tus respuestas indican señales que un médico debe evaluar antes de comenzar fisioterapia. Esto es lo más responsable que puedo hacer por ti.<br><br>Una vez que tengas el visto bueno médico, estaré aquí para acompañarte.</p>
-        <a href="https://wa.me/52TUNUMERO?text=Hola+Chava,+hice+el+formulario+y+me+salió+una+alerta.+¿Puedes+orientarme?" class="btn-hero" target="_blank" style="justify-content:center;width:100%;">Hablar con Chava por WhatsApp →</a>
+        <a href="https://wa.me/524494241796?text=Hola+Chava,+hice+el+formulario+y+me+salió+una+alerta.+¿Puedes+orientarme?" class="btn-hero" target="_blank" style="justify-content:center;width:100%;">Hablar con Chava por WhatsApp →</a>
       </div>
 
       <!-- Resultado: apto -->
       <div class="fres" id="resOk">
         <div class="fres-icon v">✅</div>
         <div class="fres-tit" id="resTit">¡Todo bien! Podemos trabajar juntos</div>
-        <p class="fres-txt">No encontré señales de alarma. La consulta online es una excelente opción para ti. Elige el plan que más te convenga:</p>
+        <p class="fres-txt">No encontré señales de alarma. Confirma el paquete elegido o cámbialo antes de continuar al pago seguro con Stripe.</p>
         <div class="paq-list">
           <div class="paq-sel">
-            <input type="radio" name="paq" value="individual" id="pq1">
+            <input type="radio" name="paq" value="valoracion" id="pq1">
             <label class="paq-l" for="pq1">
-              <div class="paq-n">Consulta de diagnóstico</div>
+              <div class="paq-n">Valoración + Ruta de Recuperación</div>
               <div class="paq-d">Evaluación + plan personalizado · 1 sesión</div>
               <div class="paq-p">$1,199 MXN</div>
             </label>
           </div>
           <div class="paq-sel">
-            <input type="radio" name="paq" value="basico" id="pq2">
+            <input type="radio" name="paq" value="inicio" id="pq2">
             <label class="paq-l" for="pq2">
-              <div class="paq-n">Plan de inicio · 3 sesiones ⭐ Más elegido</div>
-              <div class="paq-d">Evaluación + 2 sesiones de seguimiento</div>
-              <div class="paq-p">$2,799 MXN</div>
+              <div class="paq-n">Inicio Guiado · 4 semanas ⭐ Más recomendado</div>
+              <div class="paq-d">Valoración + 3 sesiones semanales de seguimiento</div>
+              <div class="paq-p">$3,499 MXN</div>
             </label>
           </div>
           <div class="paq-sel">
-            <input type="radio" name="paq" value="completo" id="pq3">
+            <input type="radio" name="paq" value="avanzado" id="pq3">
             <label class="paq-l" for="pq3">
-              <div class="paq-n">Plan de recuperación · 6 sesiones</div>
-              <div class="paq-d">Recuperación mensual con seguimiento total</div>
-              <div class="paq-p">$5,599 MXN</div>
+              <div class="paq-n">Acompañamiento Avanzado · 7 semanas</div>
+              <div class="paq-d">Valoración + 6 sesiones semanales de seguimiento</div>
+              <div class="paq-p">$6,499 MXN</div>
             </label>
           </div>
         </div>
-        <button class="f-next" id="btnPagar" onclick="pagar()" disabled>Agendar y continuar →</button>
-        <p style="font-size:12px;color:var(--gris-clr);margin-top:14px;line-height:1.6;">Tu información es confidencial. Recibirás el link de pago y confirmación por WhatsApp.</p>
+        <button class="f-next" id="btnPagar" onclick="pagar()" disabled>Continuar a pago seguro →</button>
+        <p style="font-size:12px;color:var(--gris-clr);margin-top:14px;line-height:1.6;">Después de pagar recibirás el formulario clínico obligatorio. Debe completarse mínimo 24 h antes de tu cita para poder realizar la valoración online.</p>
       </div>
 
     </div>
@@ -1062,7 +1089,7 @@ async function reservarSlot(slotId, nombre, wa, paquete){
     <a href="#proceso">Cómo funciona</a>
     <a href="#paquetes">Paquetes y precios</a>
     <a href="#formulario">Iniciar valoración</a>
-    <a href="https://wa.me/52TUNUMERO" target="_blank">WhatsApp directo</a>
+    <a href="https://wa.me/524494241796" target="_blank">WhatsApp directo</a>
   </div>
 </footer>
 
@@ -1071,6 +1098,17 @@ let fPaso=1;
 const fBanderas={};
 let slotSeleccionado=null;
 let slotsDisp=[];
+let paqueteSeleccionado=null;
+
+function selectPackage(pkgKey){
+  paqueteSeleccionado=pkgKey;
+  const radio=document.querySelector('input[name="paq"][value="'+pkgKey+'"]');
+  if(radio){
+    radio.checked=true;
+    document.getElementById('btnPagar').disabled=false;
+  }
+  document.getElementById('formulario').scrollIntoView({behavior:'smooth',block:'start'});
+}
 
 function setProg(paso,total){
   const pct=Math.round((paso/total)*100);
@@ -1206,13 +1244,23 @@ function confirmarSlot(){
   document.getElementById('fs5').classList.remove('on');
   document.querySelector('.prog-wrap').style.display='none';
   const nom=document.getElementById('fNombre').value.split(' ')[0];
-  document.getElementById('resTit').textContent='¡Todo bien, '+nom+'! Elige tu plan';
+  document.getElementById('resTit').textContent='¡Todo bien, '+nom+'! Confirma tu paquete';
   document.getElementById('resOk').classList.add('on');
+  if(paqueteSeleccionado){
+    const radio=document.querySelector('input[name="paq"][value="'+paqueteSeleccionado+'"]');
+    if(radio){
+      radio.checked=true;
+      document.getElementById('btnPagar').disabled=false;
+    }
+  }
   document.getElementById('formulario').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
 document.querySelectorAll('input[name="paq"]').forEach(r=>{
-  r.addEventListener('change',()=>document.getElementById('btnPagar').disabled=false);
+  r.addEventListener('change',()=>{
+    paqueteSeleccionado=r.value;
+    document.getElementById('btnPagar').disabled=false;
+  });
 });
 
 async function pagar(){
@@ -1220,25 +1268,68 @@ async function pagar(){
   const wa=document.getElementById('fWa').value;
   const paq=document.querySelector('input[name="paq"]:checked')?.value;
   if(!paq){alert('Por favor selecciona un paquete.');return;}
+  if(!slotSeleccionado){alert('Por favor selecciona un horario.');return;}
 
   const btn=document.getElementById('btnPagar');
-  btn.textContent='Procesando...';btn.disabled=true;
+  btn.textContent='Abriendo Stripe...';btn.disabled=true;
 
-  // Reservar slot en Supabase
-  if(slotSeleccionado){
+  const pkg=PACKAGES[paq];
+  const fechaSlot=slotSeleccionado.datetime.slice(0,10);
+  const horaSlot=slotSeleccionado.datetime.slice(11,16);
+  const payload={
+    priceId:pkg.priceId,
+    packageKey:paq,
+    packageName:pkg.nombre,
+    customer:{nombre:nom,whatsapp:wa},
+    slot:{
+      id:slotSeleccionado.id,
+      datetime:slotSeleccionado.datetime,
+      fecha:fechaSlot,
+      hora:horaSlot
+    },
+    formUrl:FORM_VALORACION_URL,
+    successUrl:window.location.origin+window.location.pathname+"?pago=exitoso",
+    cancelUrl:window.location.href,
+    metadata:{
+      nombre:nom,
+      whatsapp:wa,
+      paquete:paq,
+      stripe_price_id:pkg.priceId,
+      slot_id:String(slotSeleccionado.id||""),
+      slot_datetime:slotSeleccionado.datetime||"",
+      rodilla:document.querySelector('input[name="rod"]:checked')?.value||"",
+      tiempo:document.querySelector('input[name="tiem"]:checked')?.value||"",
+      dolor:document.getElementById('fDolor').value||"",
+      especialista:document.querySelector('input[name="prev"]:checked')?.value||"",
+      objetivo:document.getElementById('fObj').value.trim()
+    }
+  };
+
+  try{
+    const res=await fetch(STRIPE_CHECKOUT_ENDPOINT,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(payload)
+    });
+    if(!res.ok)throw new Error("checkout_failed");
+    const data=await res.json();
+    if(!data.url)throw new Error("missing_checkout_url");
     await reservarSlot(slotSeleccionado.id,nom,wa,paq);
+    window.location.href=data.url;
+    return;
+  }catch(err){
+    const msg=encodeURIComponent(
+      'Hola Chava, soy '+nom+
+      '. Pasé el filtro clínico y quiero pagar el paquete '+pkg.nombre+' ('+pkg.precio+')'+
+      ' para el '+fechaSlot+' a las '+horaSlot+' hrs.'+
+      ' Mi WhatsApp es '+wa+
+      '. Formulario obligatorio: '+FORM_VALORACION_URL+
+      '. Nota técnica: falta conectar el endpoint seguro de Stripe Checkout para este Price ID: '+pkg.priceId
+    );
+    window.open('https://wa.me/'+WHATSAPP_NUM+'?text='+msg,'_blank');
+    alert('Todavía falta conectar el endpoint seguro de Stripe. Te abrí WhatsApp para continuar manualmente sin exponer llaves secretas.');
+    btn.textContent='Continuar a pago seguro →';btn.disabled=false;
   }
-
-  const nombres={individual:'consulta de diagnóstico ($1,199)',basico:'plan de inicio — 3 sesiones ($2,799)',completo:'plan de recuperación — 6 sesiones ($5,599)'};
-  const fechaSlot=slotSeleccionado?slotSeleccionado.datetime.slice(0,10):'';
-  const horaSlot=slotSeleccionado?slotSeleccionado.datetime.slice(11,16):'';
-  const msg=encodeURIComponent(
-    'Hola Chava! 👋 Soy '+nom+' y acabo de agendar el '+nombres[paq]+
-    (fechaSlot?' para el '+fechaSlot+' a las '+horaSlot+'hrs':'')+
-    '. Mi WhatsApp es '+wa+'. Quedando en espera del link de pago. 🦵'
-  );
-  window.open('https://wa.me/52TUNUMERO?text='+msg,'_blank');
-  btn.textContent='Agendar y continuar →';btn.disabled=false;
 }
 </script>
 </body>
