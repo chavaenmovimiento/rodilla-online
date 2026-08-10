@@ -1402,8 +1402,10 @@ async function pagar(){
   const pkg=PACKAGES[paq];
   const fechaSlot=slotSeleccionado.datetime.slice(0,10);
   const horaSlot=slotSeleccionado.datetime.slice(11,16);
+  const stripeUrl=new URL(pkg.checkoutUrl);
+  stripeUrl.searchParams.set('client_reference_id',String(slotSeleccionado.id));
   const payload={
-    checkoutUrl:pkg.checkoutUrl,
+    checkoutUrl:stripeUrl.toString(),
     packageKey:paq,
     packageName:pkg.nombre,
     customer:{nombre:nom,whatsapp:wa},
@@ -1420,7 +1422,7 @@ async function pagar(){
       nombre:nom,
       whatsapp:wa,
       paquete:paq,
-      stripe_checkout_url:pkg.checkoutUrl,
+      stripe_checkout_url:stripeUrl.toString(),
       slot_id:String(slotSeleccionado.id||""),
       slot_datetime:slotSeleccionado.datetime||"",
       rodilla:document.querySelector('input[name="rod"]:checked')?.value||"",
@@ -1434,7 +1436,7 @@ async function pagar(){
   try{
     await reservarSlot(slotSeleccionado.id,nom,wa,paq);
     sessionStorage.setItem('chava_valoracion',JSON.stringify(payload));
-    window.location.href=pkg.checkoutUrl;
+    window.location.href=stripeUrl.toString();
     return;
   }catch(err){
     const msg=encodeURIComponent(
@@ -1443,7 +1445,7 @@ async function pagar(){
       ' para el '+fechaSlot+' a las '+horaSlot+' hrs.'+
       ' Mi WhatsApp es '+wa+
       '. Formulario obligatorio: '+FORM_VALORACION_URL+
-      '. Enlace de pago: '+pkg.checkoutUrl
+      '. Enlace de pago: '+stripeUrl.toString()
     );
     window.open('https://wa.me/'+WHATSAPP_NUM+'?text='+msg,'_blank');
     alert('No fue posible abrir el pago. Te abrí WhatsApp para que podamos continuar.');
