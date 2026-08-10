@@ -1,0 +1,8 @@
+{
+  "name": "chava-en-movimiento-payments",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "stripe": "^22.4.0"
+  }
+}
