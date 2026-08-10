@@ -75,7 +75,9 @@ export default async function handler(req, res) {
       (event.type === "checkout.session.completed" && session.payment_status === "paid") ||
       event.type === "checkout.session.async_payment_succeeded"
     ) {
-      if (!slotId) throw new Error("Stripe session has no slot reference");
+      if (!slotId) {
+        return res.status(200).json({ received: true, ignored: "no_slot_reference" });
+      }
       await updateSlot(slotId, { status: "ocupado" });
     }
 
