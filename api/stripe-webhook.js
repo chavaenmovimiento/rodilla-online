@@ -4,8 +4,6 @@ export const config = {
   api: { bodyParser: false }
 };
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
 async function rawBody(req) {
   const chunks = [];
   for await (const chunk of req) {
@@ -46,6 +44,12 @@ export default async function handler(req, res) {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method not allowed" });
   }
+
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return res.status(500).json({ error: "Stripe secret is missing" });
+  }
+
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
   const signature = req.headers["stripe-signature"];
   if (!signature || !process.env.STRIPE_WEBHOOK_SECRET) {
