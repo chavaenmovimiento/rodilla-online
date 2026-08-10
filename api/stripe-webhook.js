@@ -52,22 +52,40 @@ export default async function handler(req, res) {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
   const signature = req.headers["stripe-signature"];
-  if (!signature || !process.env.STRIPE_WEBHOOK_SECRET) {
+  const signingSecrets = [
+    process.env.STRIPE_WEBHOOK_SECRET,
+    process.env.STRIPE_WEBHOOK_TEST_SECRET
+  ].filter(Boolean);
+
+  if (!signature || signingSecrets.length === 0) {
     return res.status(400).json({ error: "Webhook signature is missing" });
   }
 
+  const body = await rawBody(req);
   let event;
-  try {
-    event = stripe.webhooks.constructEvent(
-      await rawBody(req),
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET
-    );
-  } catch (error) {
-    return res.status(400).json({ error: `Invalid webhook: ${error.message}` });
+  let signatureError;
+  for (const secret of signingSecrets) {
+    try {
+      event = stripe.webhooks.constructEvent(body, signature, secret);
+      break;
+    } catch (error) {
+      signatureError = error;
+    }
+  }
+
+  if (!event) {
+    return res.status(400).json({
+      error: `Invalid webhook: ${signatureError?.message || "signature verification failed"}`
+    });
   }
 
   try {
+    // Los eventos del entorno de prueba solo validan la entrega. Nunca deben
+    // modificar los horarios reales guardados en Supabase.
+    if (!event.livemode) {
+      return res.status(200).json({ received: true, test: true });
+    }
+
     const session = event.data.object;
     const slotId = session.client_reference_id;
 
