@@ -583,20 +583,23 @@ var PACKAGES={
 
 async function getSlotsDisponibles(){
   try{
-    var r=await fetch(SB_URL+"/rest/v1/slots?status=eq.disponible&order=datetime.asc",{headers:SB_H});
-    return await r.json();
+    var r=await fetch(SB_URL+"/rest/v1/rpc/get_available_slots",{method:"POST",headers:SB_H,body:"{}"});
+    if(!r.ok)return[];
+    var data=await r.json();
+    return Array.isArray(data)?data:[];
   }catch(e){return[];}
 }
 
+// Devuelve true si se apartó y false si alguien más ya lo tomó.
+// Lanza un error si no se pudo confirmar, para no mandar a pagar sin lugar.
 async function reservarSlot(slotId, nombre, wa, paquete){
-  try{
-    await fetch(SB_URL+"/rest/v1/slots?id=eq."+slotId,{
-      method:"PATCH",
-      headers:SB_H,
-      body:JSON.stringify({status:"pendiente_pago",patient_name:nombre,patient_wa:wa,package:paquete})
-    });
-    return true;
-  }catch(e){return false;}
+  var r=await fetch(SB_URL+"/rest/v1/rpc/reserve_slot",{
+    method:"POST",
+    headers:SB_H,
+    body:JSON.stringify({p_slot_id:String(slotId),p_name:nombre,p_wa:wa,p_package:paquete})
+  });
+  if(!r.ok)throw new Error("No se pudo apartar el horario ("+r.status+")");
+  return (await r.json())===true;
 }
 </script>
 </head>
@@ -1434,7 +1437,13 @@ async function pagar(){
   };
 
   try{
-    await reservarSlot(slotSeleccionado.id,nom,wa,paq);
+    const apartado=await reservarSlot(slotSeleccionado.id,nom,wa,paq);
+    if(!apartado){
+      alert('Ese horario acaba de ocuparse y no se hizo ningún cobro. Elige otro horario, por favor.');
+      btn.textContent='Pagar valoración de forma segura →';btn.disabled=false;
+      await cargarCalendario();
+      return;
+    }
     sessionStorage.setItem('chava_valoracion',JSON.stringify(payload));
     window.location.href=stripeUrl.toString();
     return;
